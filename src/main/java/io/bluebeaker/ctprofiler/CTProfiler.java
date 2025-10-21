@@ -1,5 +1,6 @@
 package io.bluebeaker.ctprofiler;
 
+import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,6 +16,9 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION)
 public class CTProfiler
 {
@@ -25,6 +29,8 @@ public class CTProfiler
     public MinecraftServer server;
 
     private static Logger logger;
+
+    public static List<ProfilerCache> profilerCaches = new ArrayList<>();
     
     public CTProfiler() {
         MinecraftForge.EVENT_BUS.register(this);
@@ -37,6 +43,17 @@ public class CTProfiler
     @EventHandler
     public void onServerStart(FMLServerStartingEvent event){
         this.server=event.getServer();
+    }
+
+
+    @EventHandler
+    public void onStarted(FMLLoadCompleteEvent event) {
+        profilerCaches.sort((e,i)-> Long.compare(i.time,e.time));
+        StringBuilder builder = new StringBuilder("Script load times: \nTime\t\tLoader\t\tFile");
+        for (ProfilerCache profilerCache : profilerCaches) {
+            builder.append("\n").append(profilerCache.time).append("ms\t\t").append(profilerCache.loader).append("\t\t").append(profilerCache.scriptFile);
+        }
+        logger.info(builder);
     }
 
     @SubscribeEvent
