@@ -7,7 +7,7 @@ import net.minecraftforge.common.config.Config.Type;
 
 @Config(modid = CTProfiler.MODID,type = Type.INSTANCE,category = "general")
 public class CTProfilerConfig {
-    @Comment("Example")
-    @LangKey("config.ctprofiler.example.name")
-    public static boolean example = true;
+    @Comment("Log event times")
+    @LangKey("config.ctprofiler.logEventTimes.name")
+    public static boolean logEventTimes = false;
 }

@@ -1,10 +1,10 @@
 package io.bluebeaker.ctprofiler;
 
+import crafttweaker.util.IEventHandler;
 import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
-import org.apache.logging.log4j.LogManager;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.logging.log4j.Logger;
 
-import io.bluebeaker.ctprofiler.Tags;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.ConfigManager;
@@ -18,6 +18,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION)
 public class CTProfiler
@@ -53,7 +54,24 @@ public class CTProfiler
         for (ProfilerCache profilerCache : profilerCaches) {
             builder.append("\n").append(profilerCache.time).append("ms\t\t").append(profilerCache.loader).append("\t\t").append(profilerCache.scriptFile);
         }
-        logger.info(builder);
+        CTProfilerLogger.writeToLog(builder);
+    }
+
+    int tickCount = 0;
+
+    @SubscribeEvent
+    public void tick(TickEvent.ServerTickEvent event){
+        tickCount++;
+        if(tickCount>=200){
+            tickCount=0;
+            StringBuilder builder = new StringBuilder("Event execution times: \nTime\t\tCount\t\tEventHandler");
+            Map<IEventHandler<?>, EventProfiler.Record> dump = EventProfiler.dump();
+            if(dump.isEmpty()) return;
+            for (Map.Entry<IEventHandler<?>, EventProfiler.Record> entry : dump.entrySet()) {
+                builder.append("\n").append(String.format("%.3f",(float) entry.getValue().timeNs /1000000)).append("ms\t\t").append(entry.getValue().count).append("\t\t").append(entry.getKey());
+            }
+            CTProfilerLogger.writeToLog(builder);
+        }
     }
 
     @SubscribeEvent
